@@ -2,7 +2,7 @@
 
 include("functions.php");
 
-$Hash = mysql_real_escape_string($_GET['hash']);
+$Hash = mysql_real_escape_string(trim($_GET['hash'], '/'));
 
 
 $Query = mysql_query("Select `Content` from `Posts` where `Hash`='$Hash'");

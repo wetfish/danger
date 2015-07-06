@@ -33,10 +33,10 @@ if($_POST)
 	$Stuff = array(	"Your post is $Length character{$Plural} long.",
 					"With an MD5 hash of $Hash",
 					"",
-					"<a href='http://wetfish.net/Embed'>Embed Code</a>",
-					"<input type='text' value='embed{http://danger.wetfish.net/$Hash}' size='60' />",
-					"<a href='http://danger.wetfish.net/$Hash'>Dangerfish Page</a>",
-					"<input type='text' value='http://danger.wetfish.net/$Hash' size='60' />");
+					"<a href='https://wiki.wetfish.net '>Embed Code</a>",
+					"<input type='text' value='embed[https://danger.wetfish.net/$Hash]' size='60' />",
+					"<a href='https://danger.wetfish.net/$Hash'>Dangerfish Page</a>",
+					"<input type='text' value='https://danger.wetfish.net/$Hash' size='60' />");
 					
 	foreach($Stuff as $Line)
 	{
@@ -61,7 +61,7 @@ if($_POST)
 }
 else
 {
-	$Hash = mysql_real_escape_string($_GET['hash']);
+	$Hash = mysql_real_escape_string(trim($_GET['hash'], '/'));
 	$Page = explode('/', $Hash);
 	
 	switch($Page[0])
@@ -137,7 +137,7 @@ else
 			else
 			{
 				$Content = "Are you ready to get <b>DANGEROUS?</b><br /><br />
-					This is a contenteditable div, you can paste all sorts of fun stuff into it, complete with URL for <a href='http://wetfish.net/sharing'>sharing</a>.<br /><br />
+					This is a contenteditable div, you can paste all sorts of fun stuff into it, complete with URL for <a href='https://wiki.wetfish.net/'>sharing</a>.<br /><br />
 					<span style='font-size:16pt; font-weight:bold;'>But what kind of fun stuff?</span><br />
 					HTML formatting/images from other pages,<br />
 					Formatting from rich text editors,<br />
@@ -196,7 +196,7 @@ else
 
 			function Submit()
 			{
-				$.post('dangerous.php', {html: $('#dangerbox').html() }, function(Happy)
+				$.post('index.php', {html: $('#dangerbox').html() }, function(Happy)
 				{
 					Jetpack.Window({
 								name: 'Just A Window',
