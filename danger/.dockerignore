@@ -1,7 +1,5 @@
 .env
 .env.example
-images/
-*.js
 schema.sql
 Dockerfile
 docker-compose.yml
