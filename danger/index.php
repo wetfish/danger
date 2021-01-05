@@ -21,6 +21,7 @@ function RandomButton()
 if($_POST)
 {
 	$HTML = $_POST['html'];
+	$SITE = getenv('SITE_URL');
 	
 	// get images
 	
@@ -34,9 +35,9 @@ if($_POST)
 					"With an MD5 hash of $Hash",
 					"",
 					"<a href='https://wiki.wetfish.net '>Embed Code</a>",
-					"<input type='text' value='embed[https://danger.wetfish.net/$Hash]' size='60' />",
-					"<a href='https://danger.wetfish.net/$Hash'>Dangerfish Page</a>",
-					"<input type='text' value='https://danger.wetfish.net/$Hash' size='60' />");
+					"<input type='text' value='embed[https://$SITE/$Hash]' size='60' />",
+					"<a href='https://$SITE$Hash'>Dangerfish Page</a>",
+					"<input type='text' value='https://$SITE/$Hash' size='60' />");
 					
 	foreach($Stuff as $Line)
 	{
