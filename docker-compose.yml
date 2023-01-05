@@ -1,63 +1,68 @@
-version: '3'
+# version 3+ does different things re: networking from 2.x
+# mainly things to support swarms
+# aka things we don't need/want
+version: '2.4'
 services:
+  # httpd
+  danger-web:
+    image: docker.io/nginx:1.23-alpine
+    container_name: danger-web
+    restart: unless-stopped
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./wwwroot:/var/www
+    # uncomment to expose port directly
+    # normally behind centeral traefik defined in production-manifests/services/traefik
+    # ports:
+    #   - "80:80"
 
-  #PHP Service
-  danger:
-    image: fishnet/danger
+    # join danger-internal and traefik-backend networks
+    # comment out the traefik lines here and in the networks: stanza below
+    # if you uncomment the port exposure above
+    networks:
+      danger-internal: {}
+      traefik-backend: {}
+
+  # php-fpm
+  danger-php:
+    # production: track "prod" tag on ghcr.io
+    # image: ghcr.io/wetfish/danger:prod
+    # for development, build the image
+    # TODO: once ghcr.io autobuilds in place, change this
+    build: .
     container_name: danger-php
     restart: unless-stopped
-    tty: true
-    working_dir: /var/www
+    # db connection info
     env_file:
-      - ./.env
+      - ./php.env
     volumes:
-      - ./:/var/www
-      - ./config/php.ini:/usr/local/etc/php/conf.d/settings.ini
+      - ./wwwroot:/var/www
     networks:
-      - danger-network
-    depends_on:
-      - db
+      danger-internal: {}
 
-  webserver:
-    image: nginx:alpine
-    container_name: danger-nginx
+  # database
+  danger-db:
+    image: docker.io/mariadb:10.10
+    container_name: danger-db
     restart: unless-stopped
-    ports: 
-      - "80:80"
-    volumes:
-      - ./:/var/www
-      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf
-    networks:
-      - danger-network
-    depends_on:
-      - db
-      - danger
-
-  # MySQL Service
-  db:
-    image: mariadb
-    container_name: danger-mysql
-    restart: unless-stopped
-    command: --sql_mode=""
-    environment:
-      MYSQL_ROOT_PASSWORD: $DB_PASSWORD
-      MYSQL_DATABASE: $DB_DATABASE 
-      MYSQL_USER: $DB_USERNAME 
-      MYSQL_PASSWORD: $DB_PASSWORD
+    env_file:
+      - ./mariadb.env
+    # built-in healthcheck script
+    healthcheck:
+      test: ["healthcheck.sh", "--su=mysql", "--connect", "--innodb_initialized"]
+      interval: 60s
+      timeout: 5s
+      retries: 5
     volumes:
       - ./schema.sql:/docker-entrypoint-initdb.d/setup.sql
-      - dbdata:/var/lib/mysql
+      - ./db/data:/var/lib/mysql
     networks:
-      - danger-network
+      danger-internal: {}
 
-#Docker Networks
 networks:
-  danger-network:
+  # ephemeral, created for us by compose
+  danger-internal:
     driver: bridge
-
-#Volumes
-volumes:
-    dbdata:
-      driver: local
-    node_modules:
-      driver: local
+  # persistent, externally created
+  traefik-backend:
+    external: true
