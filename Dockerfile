@@ -2,8 +2,6 @@ FROM docker.io/php:5.6-fpm-alpine
 
 COPY ./wwwroot /var/www
 
-RUN docker-php-ext-install mysqli mysql
-
 RUN set -exu \
   && addgroup --gid 1101 fishy \
   && adduser \
@@ -14,6 +12,9 @@ RUN set -exu \
       --disabled-password \
       fishy \
   && chown -R fishy:fishy /var/www
+
+RUN set -exu \
+  && docker-php-ext-install mysqli mysql
 
 USER fishy
 
