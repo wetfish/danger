@@ -5,8 +5,25 @@
 See [https://github.com/wetfish/production-manifests](https://github.com/wetfish/production-manifests)
 for production deployment and full stack dev env info.
 
-For local development of this repo only, edit docker-compose.yml,
-uncommenting the port exposure stanza,
-and commenting out everything `traefik-backend` related.
+For development, to run just this stack, do 
+```bash
+cp mariadb.env.example mariadb.env
+# -> edit, change passwords and other info as needed
+cp php.env.example php.env
+# -> edit, change passwords to match
 
-Either way, you'll want to copy `php.env.example` and `mariadb.env.example` to `php.env` and `mariadb.env` and set some real passwords.
+docker compose \
+  -f docker-compose.dev.yml \
+  up -d \
+  --build \
+  --force-recreate
+
+docker compose logs -f
+```
+
+The service will be available at [http://127.0.0.1:80](http://127.0.0.1:80)
+
+## When do I need to rebuild the container?
+
+Only if you touch Dockerfile. \
+Application code is not in the php-fpm container image.
