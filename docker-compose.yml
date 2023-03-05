@@ -11,14 +11,7 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ./wwwroot:/var/www
-    # uncomment to expose port directly
-    # normally behind centeral traefik defined in production-manifests/services/traefik
-    # ports:
-    #   - "80:80"
-
     # join danger-internal and traefik-backend networks
-    # comment out the traefik lines here and in the networks: stanza below
-    # if you uncomment the port exposure above
     networks:
       danger-internal: {}
       traefik-backend: {}
@@ -26,10 +19,7 @@ services:
   # php-fpm
   danger-php:
     # production: track "prod" tag on ghcr.io
-    # image: ghcr.io/wetfish/danger:prod
-    # for development, build the image
-    # TODO: once ghcr.io autobuilds in place, change this
-    build: .
+    image: ghcr.io/wetfish/danger:prod
     container_name: danger-php
     restart: unless-stopped
     # db connection info

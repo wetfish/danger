@@ -20,10 +20,8 @@ services:
 
   # php-fpm
   danger-php:
-    # production: track "prod" tag on ghcr.io
-    # image: ghcr.io/wetfish/danger:prod
     # for development, build the image
-    # TODO: once ghcr.io autobuilds in place, change this
+    # image: ghcr.io/wetfish/danger:dev
     build: .
     container_name: danger-php
     restart: unless-stopped
