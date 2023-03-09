@@ -21,7 +21,7 @@ services:
   # php-fpm
   danger-php:
     # for development, build the image
-    # image: ghcr.io/wetfish/danger:dev
+    image: ghcr.io/wetfish/danger:dev
     build: .
     container_name: danger-php
     restart: unless-stopped
