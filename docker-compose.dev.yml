@@ -13,7 +13,7 @@ services:
       - ./wwwroot:/var/www
     # normally behind centeral traefik defined in production-manifests/services/traefik
     ports:
-      - "127.0.0.1:80:80"
+      - "127.0.0.1:2402:80"
     # join danger-internal network
     networks:
       danger-internal: {}
