@@ -1,5 +1,7 @@
 .env
 .env.example
+php.env
+mariadb.env
 schema.sql
 Dockerfile
 docker-compose.yml
