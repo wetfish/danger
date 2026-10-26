@@ -1,54 +1,32 @@
-#
-# runtime container
-FROM docker.io/debian:bookworm-slim
+FROM docker.io/php:8.5.12-fpm-alpine
 
-# install some packages
-RUN set -exu \
-  && DEBIAN_FRONTEND=noninteractive apt-get -yq update \
-  && DEBIAN_FRONTEND=noninteractive apt-get -yq install \
-    libjpeg-dev \
-    libpng-dev \
-    libfreetype6-dev \
-    software-properties-common \
-    ca-certificates \
-    lsb-release \
-    apt-transport-https \
-    curl
+# mysqli for the database
+RUN docker-php-ext-install mysqli
 
-# setup php5.6 repo
-RUN set -exu \
-  && echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list \
-  && curl -fsSL https://packages.sury.org/php/apt.gpg | apt-key add -
+# php's production defaults, plus danger's own settings
+RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+COPY ./php.ini "$PHP_INI_DIR/conf.d/danger.ini"
 
-# install php5.6, some extensions, and nodejs
-RUN set -exu \
-  && DEBIAN_FRONTEND=noninteractive apt-get -yq update \
-  && DEBIAN_FRONTEND=noninteractive apt-get -yq install \
-    php5.6 \
-    php5.6-fpm \
-    php5.6-mysqli \
-    php5.6-mysql
-
-
-# clean apt caches
-RUN set -exu \
-  && DEBIAN_FRONTEND=noninteractive apt-get -yq clean
-
-COPY ./wwwroot /var/www
-
-# php and php-fpm settings, built in so servers never mount them from the repo
-COPY ./config/php-fpm.conf /etc/php/5.6/fpm/php-fpm.conf
-COPY ./config/php-fpm-pool.conf /etc/php/5.6/fpm/pool.d/www.conf
-COPY ./config/php.ini /etc/php/5.6/fpm/php.ini
-
-# back to root
-USER root
-
-WORKDIR /var/www
+# php only needs the php files, nginx serves everything else
+COPY ./public_html/*.php /var/www/
 
 RUN set -exu \
-  && chown -R www-data:www-data /var/www
+  && addgroup --gid 1101 fishy \
+  && adduser \
+      --uid 1101 \
+      --ingroup fishy \
+      --no-create-home \
+      --shell /sbin/nologin \
+      --disabled-password \
+      fishy \
+  && chown -R fishy:fishy /var/www \
+  && chmod -R 755 /var/www
+
+USER fishy
 
 # Expose port 9000 and start php-fpm server
 EXPOSE 9000
-CMD ["/usr/sbin/php-fpm5.6", "--nodaemonize", "--force-stderr"]
+
+WORKDIR /var/www
+
+CMD ["php-fpm"]

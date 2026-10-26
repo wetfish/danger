@@ -9,40 +9,30 @@ for setting up a server. Then add danger to it with
 ./add-project.sh --name danger --repo https://github.com/wetfish/danger.git --domain <domain>
 ```
 
-The first deploy fails until danger has its database settings. Create them in
-the server's clone of danger, then deploy again:
-
-```bash
-cd /srv/wetfish-server/projects/danger
-cp mariadb.env.example mariadb.env
-# -> edit, change passwords and other info as needed
-cp php.env.example php.env
-# -> edit, change passwords to match, and set SITE_URL to the domain
-
-cd /srv/wetfish-server
-./deploy.sh danger
-```
-
+It sets everything up from [setup.conf](setup.conf): danger gets its own database on the server's
+shared database, and its domain for post links, so there's nothing to enter by hand.
 After that it'll redeploy whenever `main` (staging) or `release` (production) is pushed.
+
+The server creates danger's tables from schema.sql when it first creates danger's database,
+and never runs it again.
 
 ### Moving posts from an old server
 
-Posts live in the `danger_db` Docker volume. To bring them over from a server
-running the old `danger-db` container, dump them there:
+On a server still running the old `danger-db` container, dump the posts:
 
 ```bash
 docker exec danger-db sh -c 'exec mariadb-dump --user=root --password="$MARIADB_ROOT_PASSWORD" "$MARIADB_DATABASE"' > danger.sql
 ```
 
-then copy `danger.sql` to the new server, after danger's first successful deploy, and load it:
+then copy `danger.sql` to the new server and load it into danger's database, from wetfish/server's directory:
 
 ```bash
-docker exec -i danger-db-1 sh -c 'exec mariadb --user=root --password="$MARIADB_ROOT_PASSWORD" "$MARIADB_DATABASE"' < danger.sql
+./database.sh import danger < danger.sql
 ```
 
 ## Development
 
-To run just this stack, do
+To run just this stack, with its own database, do
 ```bash
 # setup a /etc/hosts entry to match SITE_URL
 # 127.0.0.1   danger.wetfish.net.local
@@ -59,6 +49,8 @@ docker compose logs -f
 
 The service will be available at [http://danger.wetfish.net.local:2402](http://danger.wetfish.net.local:2402)
 
+The database and port only exist in docker-compose.override.yml, which servers leave out.
+
 If you want to test it like it's on a real server, set up a
 [local copy](https://github.com/wetfish/server/blob/main/docs/how-it-works.md#a-local-copy-for-testing)
 of wetfish/server and add your clone by its path, with a domain like `danger.localhost`. \
@@ -66,5 +58,6 @@ Heads up, it only deploys committed changes!
 
 ## When do I need to rebuild the container?
 
-Whenever you make an edit in wwwroot, config, nginx.conf, or schema.sql. \
-schema.sql only runs when the database volume is empty; to start over locally, run `docker compose down --volumes`.
+Whenever you make an edit in public_html, php.ini, or nginx.conf. \
+schema.sql only runs in a new, empty database, so changes to it never reach an existing one.
+To start over locally with a new database, run `docker compose down --volumes`.

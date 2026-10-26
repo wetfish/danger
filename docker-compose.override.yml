@@ -1,7 +1,38 @@
-# local development only, server deploys skip this file
+# local development only, server deploys skip this file and use the
+# shared database from wetfish/server instead of their own
 services:
   # httpd
   nginx:
     # normally behind the shared caddy proxy from wetfish/server
     ports:
       - "127.0.0.1:2402:80"
+
+  # php-fpm
+  php:
+    # start once the database accepts connections
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # database
+  db:
+    image: docker.io/mariadb:12.3.3
+    restart: unless-stopped
+    env_file:
+      - ./mariadb.env
+    volumes:
+      - db:/var/lib/mysql
+      # creates danger's tables, only while the db volume is empty
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    # passes once mariadb accepts connections and innodb is ready
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 1m
+      start_interval: 2s
+
+volumes:
+  # local posts, kept until docker compose down --volumes
+  db: {}

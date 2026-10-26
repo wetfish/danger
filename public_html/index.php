@@ -20,7 +20,7 @@ function RandomButton()
 	
 if($_POST)
 {
-	$HTML = $_POST['html'];
+	$HTML = is_string($_POST['html'] ?? null) ? $_POST['html'] : '';
 	$Site = getenv('SITE_URL');
 	
 	// get images
@@ -28,8 +28,7 @@ if($_POST)
 	$Length = strlen($HTML);
 	$Hash = md5($HTML);
 	
-	if($Length != 1)
-		$Plural = "s";
+	$Plural = ($Length != 1) ? "s" : "";
 
 	$Stuff = array(	"Your post is $Length character{$Plural} long.",
 					"With an MD5 hash of $Hash",
@@ -46,31 +45,33 @@ if($_POST)
 
 	// Insert to database
 	
-	$Query = mysql_query("Select `Content` from `Posts` where `Hash`='$Hash'");
-	list($Content) = mysql_fetch_array($Query);
+	$Query = Query("Select `Content` from `Posts` where `Hash`=?", $Hash);
+	list($Content) = $Query->fetch_row();
 	
 	if(empty($Content))
 	{
 		$Author = $_SERVER['REMOTE_ADDR'];
-		$Content = mysql_real_escape_string($_POST['html']);
+		$Content = $HTML;
 		$Time = time();
 	
-		mysql_query("Insert into `Posts` values ('$Hash', '$Author', '$Content', '$Time')");
+		Query("Insert into `Posts` values (?, ?, ?, ?)", $Hash, $Author, $Content, $Time);
 	}
 	
 	//echo stripslashes($_POST['html']);
 }
 else
 {
-	$Hash = mysql_real_escape_string(trim($_GET['hash'], '/'));
+	$Hash = trim($_GET['hash'] ?? '', '/');
 	$Page = explode('/', $Hash);
+	$Content = "";
 	
 	switch($Page[0])
 	{
 		case "recent":
-			$Query = mysql_query("Select * from `Posts` order by `Time` desc limit 50");
-			while(list($QueryHash, $QueryAuthor, $QueryContent, $QueryTime) = mysql_fetch_array($Query))
+			$Query = Query("Select * from `Posts` order by `Time` desc limit 50");
+			while($Row = $Query->fetch_row())
 			{
+				list($QueryHash, $QueryAuthor, $QueryContent, $QueryTime) = $Row;
 				$Length = strlen($QueryContent);
 				
 				date_default_timezone_set('America/New_York');
@@ -98,11 +99,12 @@ else
 		break;
 	
 		case "author":
-			$Author = mysql_real_escape_string($Page[1]);
+			$Author = $Page[1] ?? '';
 		
-			$Query = mysql_query("Select * from `Posts` where `Author`='$Author' order by `Time` desc limit 50");
-			while(list($QueryHash, $QueryAuthor, $QueryContent, $QueryTime) = mysql_fetch_array($Query))
+			$Query = Query("Select * from `Posts` where `Author`=? order by `Time` desc limit 50", $Author);
+			while($Row = $Query->fetch_row())
 			{
+				list($QueryHash, $QueryAuthor, $QueryContent, $QueryTime) = $Row;
 				$Length = strlen($QueryContent);
 				
 				date_default_timezone_set('America/New_York');
@@ -130,8 +132,8 @@ else
 		break;
 	
 		default:
-			$Query = mysql_query("Select `Content` from `Posts` where `Hash`='$Hash'");
-			list($Content) = mysql_fetch_array($Query);
+			$Query = Query("Select `Content` from `Posts` where `Hash`=?", $Hash);
+			list($Content) = $Query->fetch_row();
 
 			if($Content)
 				$Content = stripslashes($Content);

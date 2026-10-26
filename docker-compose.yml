@@ -24,39 +24,15 @@ services:
       context: .
       dockerfile: Dockerfile.php
     restart: unless-stopped
-    # db connection info
+    # db connection info, written by wetfish/server from setup.conf on a
+    # server, or copied from php.env.example for local development
     env_file:
       - ./php.env
-    depends_on:
-      - db
     # passes once php-fpm accepts connections
     healthcheck:
-      test: ["CMD", "bash", "-c", "</dev/tcp/127.0.0.1/9000"]
+      test: ["CMD", "php", "-r", "exit(@fsockopen('127.0.0.1', 9000) ? 0 : 1);"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 1m
       start_interval: 2s
-
-  # database
-  db:
-    build:
-      context: .
-      dockerfile: Dockerfile.mariadb
-    restart: unless-stopped
-    env_file:
-      - ./mariadb.env
-    volumes:
-      - db:/var/lib/mysql
-    # passes once mariadb accepts connections and innodb is ready
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 1m
-      start_interval: 2s
-
-volumes:
-  # posts, kept across deploys
-  db: {}
