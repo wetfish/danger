@@ -1,0 +1,7 @@
+# local development only, server deploys skip this file
+services:
+  # httpd
+  nginx:
+    # normally behind the shared caddy proxy from wetfish/server
+    ports:
+      - "127.0.0.1:2402:80"

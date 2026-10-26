@@ -36,6 +36,11 @@ RUN set -exu \
 
 COPY ./wwwroot /var/www
 
+# php and php-fpm settings, built in so servers never mount them from the repo
+COPY ./config/php-fpm.conf /etc/php/5.6/fpm/php-fpm.conf
+COPY ./config/php-fpm-pool.conf /etc/php/5.6/fpm/pool.d/www.conf
+COPY ./config/php.ini /etc/php/5.6/fpm/php.ini
+
 # back to root
 USER root
 

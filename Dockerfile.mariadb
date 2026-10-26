@@ -1,0 +1,4 @@
+FROM docker.io/mariadb:11.8.9
+
+# creates danger's tables the first time the database volume starts empty
+COPY ./schema.sql /docker-entrypoint-initdb.d/schema.sql

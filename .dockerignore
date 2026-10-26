@@ -1,8 +1,5 @@
-.env
-.env.example
-php.env
-mariadb.env
-schema.sql
-Dockerfile
-docker-compose.yml
-config/
+# keep git history, secrets, and old local database files out of the images
+.git
+*.env
+*.env.example
+db
