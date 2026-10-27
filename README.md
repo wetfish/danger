@@ -18,17 +18,22 @@ and never runs it again.
 
 ### Moving posts from an old server
 
-On a server still running the old `danger-db` container, dump the posts:
+On a server still running the old `danger-db` container, dump just the posts, without the old
+table's definition:
 
 ```bash
-docker exec danger-db sh -c 'exec mariadb-dump --user=root --password="$MARIADB_ROOT_PASSWORD" "$MARIADB_DATABASE"' > danger.sql
+docker exec danger-db sh -c 'exec mariadb-dump --user=root --password="$MARIADB_ROOT_PASSWORD" --no-create-info --insert-ignore --default-character-set=utf8mb4 "$MARIADB_DATABASE"' > danger.sql
 ```
 
-then copy `danger.sql` to the new server and load it into danger's database, from wetfish/server's directory:
+then copy `danger.sql` to the new server and, after danger's first deploy has created its table
+from schema.sql, load the posts into it from wetfish/server's directory:
 
 ```bash
 ./database.sh import danger < danger.sql
 ```
+
+Posts already in the new database are skipped, so to pick up posts made on the old server since,
+dump and import again.
 
 ## Development
 
