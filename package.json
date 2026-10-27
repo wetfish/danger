@@ -1,0 +1,9 @@
+{
+  "name": "danger",
+  "private": true,
+  "description": "danger's browser scripts, installed when the nginx image is built",
+  "dependencies": {
+    "dragondrop": "0.6.2",
+    "wetfish-basic": "0.7.11"
+  }
+}

@@ -58,6 +58,6 @@ Heads up, it only deploys committed changes!
 
 ## When do I need to rebuild the container?
 
-Whenever you make an edit in public_html, php.ini, or nginx.conf. \
+Whenever you make an edit in public_html, package.json, php.ini, or nginx.conf. \
 schema.sql only runs in a new, empty database, so changes to it never reach an existing one.
 To start over locally with a new database, run `docker compose down --volumes`.
